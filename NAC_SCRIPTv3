@@ -1,0 +1,197 @@
+#!/bin/bash
+#
+# ALEXANDRE BARRETO ALVES DE SOUZA
+#
+# 2TRCR - RM77837
+#
+######################################
+
+echo "-------------------------------------------"
+echo ""
+echo "Digite 1 para adicionar um novo Usuário"
+echo ""
+echo "-------------------------------------------"
+echo ""
+echo "Digite 2 para alterar a senha de um Usuário"
+echo ""
+echo "-------------------------------------------"
+echo ""
+echo "Digite 3 para adicionar um Grupo"
+echo ""
+echo "-------------------------------------------"
+echo ""
+echo "Digite 4 para adicionar um usuário ao Grupo"
+echo ""
+echo "-------------------------------------------"
+echo ""
+echo "Digite 5 para remover um Usuário"
+echo ""
+echo "-------------------------------------------"
+echo ""
+echo "Digite 6 para remover um Grupo"
+echo ""
+echo "-------------------------------------------"
+echo ""
+echo "Digite 7 para listar a relação de Usuários"
+echo ""
+echo "-------------------------------------------"
+
+read NUMBER
+
+case $NUMBER in
+# ADIÇÃO DE UM NOVO USER
+1)
+clear
+
+echo "Digite o nome do usuário:"
+MSG="INFORME O USUÀRIO"
+read USER
+test -z $USER && echo "$MSG" && exit
+RESP=$(getent passwd | cut -d ":" -f1 | grep -w $USER)
+test -z $RESP
+if [ $? -eq 0 ]; then
+    echo "Usuario não existe"
+      else
+    echo "Usuario Existe"
+    exit
+fi
+echo "Adicionando o usuário $USER ..."
+sleep 2
+useradd $USER
+journalctl -xe |tail -1
+
+;;
+# ALTERAÇÃO DE SENHA DE UM USER
+2)
+clear
+
+echo "Digite o nome do usuário que deseja alterar a senha:"
+MSG="INFORME O USUÀRIO"
+read USER
+test -z $USER && echo "$MSG" && exit
+RESP=$(getent passwd | cut -d ":" -f1 | grep -w $USER)
+test -z $RESP
+if [ $? -eq 0 ]; then
+    echo "Usuario não existe"
+      else
+    echo "Digite a nova senha do usuário $USER"
+    passwd $USER
+    journalctl -xe |tail -1
+    exit
+fi
+sleep 2
+
+;;
+# ADIÇÃO DE UM NOVO GRUPO
+3)
+clear
+
+echo "Digite o nome do grupo deseja adicionar:"
+MSG="INFORME O GRUPO"
+read GROUP
+test -z $GROUP && echo "$MSG" && exit
+RESP=$(getent group | cut -d ":" -f1 | grep -w $GROUP)
+test -z $RESP
+if [ $? -eq 0 ]; then
+    echo "O Grupo informado não existe"
+      else
+    echo "O Grupo informado já existe"
+    exit
+fi
+echo "Adicionando o Grupo $GROUP..."
+groupadd $GROUP
+sleep 2
+journalctl -xe |tail -1
+
+;;
+# ADIÇÃO DE USUÁRIO A UM GRUPO
+4)
+clear
+
+echo "Digite o nome do usuário que deseja adicionar a um grupo:"
+MSG="INFORME O USUÁRIO"
+read USER
+test -z $USER && echo "$MSG" && exit
+RESP=$(getent passwd | cut -d ":" -f1 | grep -w $USER)
+test -z $RESP
+if [ $? -eq 0 ]; then
+    echo "O usuário informado não existe"
+      else
+    echo "Digite o nome do grupo que deseja adicionar o usuário:"
+        MSG="INFORME O GRUPO"
+                read GROUP
+                test -z $GROUP && echo "$MSG" && exit
+                RESP=$(getent group | cut -d ":" -f1 | grep -w $GROUP)
+                test -z $RESP
+                if [ $? -eq 0 ]; then
+                        echo "O grupo informado não existe"
+                          else
+                        echo "Adicionando o usuário $USER ao grupo $GROUP"
+                                gpasswd -a $USER $GROUP
+                                journalctl -xe |tail -1
+    exit
+        fi
+
+fi
+sleep 2
+
+;;
+# REMOVER USUÁRIO
+5)
+clear
+
+echo "Digite o nome do usuário que deseja remover:"
+MSG="INFORME O USUÁRIO"
+read USER
+test -z $USER && echo "$MSG" && exit
+RESP=$(getent passwd | cut -d ":" -f1 | grep -w $USER)
+test -z $RESP
+if [ $? -eq 0 ]; then
+    echo "O usuário informado não existe"
+      else
+    echo "Removendo o usuário $USER"
+        userdel $USER
+        journalctl -xe |tail -3
+    exit
+fi
+sleep 2
+
+;;
+# REMOVER UM GRUPO
+6)
+clear
+
+echo "Digite o grupo que deseja remover:"
+MSG="INFORME O GRUPO"
+read GROUP
+test -z $GROUP && echo "$MSG" && exit
+RESP=$(getent group | cut -d ":" -f1 | grep -w $GROUP)
+test -z $RESP
+if [ $? -eq 0 ]; then
+    echo "O grupo informado não existe"
+      else
+    echo "Removendo o grupo $GROUP"
+        groupdel $GROUP
+        journalctl -xe |tail -1
+    exit
+fi
+sleep 2
+
+;;
+# DUMP DE USUÁRIOS
+7)
+clear
+echo "-----------------"
+echo "Lista de usuários"
+echo "-----------------"
+getent passwd | cut -d ":" -f1
+echo "-----------------"
+
+;;
+# OPÇÃO INVÁLIDA
+*)
+clear
+echo "Opção inválida"
+exit
+;;
+esac
